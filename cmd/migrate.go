@@ -136,7 +136,8 @@ func migrateUp(c *cobra.Command, args []string) error {
 	}
 
 	dir := filepath.Join(c.Flag(flagNameDirectory).Value.String(), migrationsDirName)
-	migrations, err := spanner.LoadMigrations(dir)
+	migrationFS := os.DirFS(dir)
+	migrations, err := spanner.LoadMigrations(migrationFS)
 	if err != nil {
 		return &Error{
 			cmd: c,
@@ -228,7 +229,8 @@ func createMigrationFile(dir string, name string, digits int) (string, error) {
 		return "", errors.New("Invalid migration file name.")
 	}
 
-	ms, err := spanner.LoadMigrations(dir)
+	migrationFS := os.DirFS(dir)
+	ms, err := spanner.LoadMigrations(migrationFS)
 	if err != nil {
 		return "", err
 	}

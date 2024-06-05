@@ -20,6 +20,7 @@
 package spanner_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -27,7 +28,8 @@ import (
 )
 
 func TestLoadMigrations(t *testing.T) {
-	ms, err := spanner.LoadMigrations(filepath.Join("testdata", "migrations"))
+	migrationFS := os.DirFS(filepath.Join("testdata", "migrations"))
+	ms, err := spanner.LoadMigrations(migrationFS)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -20,10 +20,10 @@
 package spanner
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
+	"io/fs"
 	"regexp"
 	"strconv"
 
@@ -79,8 +79,8 @@ func (ms Migrations) Less(i, j int) bool {
 	return ms[i].Version < ms[j].Version
 }
 
-func LoadMigrations(dir string) (Migrations, error) {
-	files, err := os.ReadDir(dir)
+func LoadMigrations(dir fs.FS) (Migrations, error) {
+	files, err := fs.ReadDir(dir, ".")
 	if err != nil {
 		return nil, err
 	}
@@ -106,14 +106,20 @@ func LoadMigrations(dir string) (Migrations, error) {
 			continue
 		}
 
-		file, err := os.ReadFile(filepath.Join(dir, filename))
+		src, err := dir.Open(f.Name())
+		if err != nil {
+			return migrations, err
+		}
+		file := new(bytes.Buffer)
+		_, err = file.ReadFrom(src)
+		// file, err := os.ReadFile(filepath.Join(dir, filename))
 		if err != nil {
 			continue
 		}
 
-		statements, err := ddlToStatements(f.Name(), file)
+		statements, err := ddlToStatements(f.Name(), file.Bytes())
 		if err != nil {
-			nstatements, nerr := dmlToStatements(f.Name(), file)
+			nstatements, nerr := dmlToStatements(f.Name(), file.Bytes())
 			if nerr != nil {
 				return nil, fmt.Errorf("failed to parse DDL/DML statements: %v, %v", err, nerr)
 			}

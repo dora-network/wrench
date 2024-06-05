@@ -219,7 +219,7 @@ func TestExecuteMigrations(t *testing.T) {
 		t.Fatalf("failed to apply mutation: %v", err)
 	}
 
-	migrations, err := LoadMigrations("testdata/migrations")
+	migrations, err := LoadMigrations(os.DirFS("testdata/migrations"))
 	if err != nil {
 		t.Fatalf("failed to load migrations: %v", err)
 	}
